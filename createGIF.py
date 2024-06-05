@@ -1,26 +1,22 @@
 from flask import Flask, request, jsonify
 import requests
-from PIL import Image, ImageDraw
+from PIL import Image
 from io import BytesIO
-import json
-import logging
 
 app = Flask(__name__)
 
-# Function to retrieve image from URL
-def get_image_from_url(url, frame_width, frame_height):
+# Function to retrieve image from URL and resize to specified dimensions
+def get_image_from_url(url, image_width, image_height):
     response = requests.get(url)
     image = Image.open(BytesIO(response.content))
-    # Calculate aspect ratio
-    aspect_ratio = min(frame_width / image.width, frame_height / image.height)
-    # Resize image to fit within the frame
-    new_width = int(image.width * aspect_ratio)
-    new_height = int(image.height * aspect_ratio)
-    return image.resize((new_width, new_height))
+    # Resize image to the specified dimensions
+    return image.resize((image_width, image_height))
 
 # Function to add a PNG frame to an image
-def add_png_frame(image, frame_path):
+def add_png_frame(image, frame_path, frame_width, frame_height):
     frame = Image.open(frame_path).convert("RGBA")
+    # Resize the frame to the specified dimensions
+    frame = frame.resize((frame_width, frame_height), Image.LANCZOS)
     # Ensure the frame size matches the image size
     frame = frame.resize(image.size, Image.LANCZOS)
     image.paste(frame, (0, 0), frame)
@@ -31,31 +27,30 @@ def generate_gif():
     data = request.json
     image_urls = data.get('image_urls', [])
     frame_path = data.get('frame_path', 'frame-gif-wanderlust1.png')  # path to your PNG frame
-
-    logging.error("Division by zero!")
+    frame_width = data.get('frame_width', 1050)
+    frame_height = data.get('frame_height', 700)
+    image_width = data.get('image_width', 935)  # Specify the image width
+    image_height = data.get('image_height', 630)  # Specify the image height
     
     if not image_urls:
         return jsonify({"error": "No image URLs provided"}), 400
     
-    # Set dimensions
-    frame_width = 1050
-    frame_height = 700
     # Create a list to store frames
     frames = []
 
     # Retrieve images from URLs and create frames
     for url in image_urls:
-        image = get_image_from_url(url, frame_width, frame_height)
+        image = get_image_from_url(url, image_width, image_height)
         # Create a blank frame
         frame = Image.new("RGB", (frame_width, frame_height), "white")
         # Paste the resized image onto the frame
         frame.paste(image, ((frame_width - image.width) // 2, (frame_height - image.height) // 2))
         # Add the PNG frame
-        frame = add_png_frame(frame, frame_path)
+        frame = add_png_frame(frame, frame_path, frame_width, frame_height)
         # Append the frame to the list
         frames.append(frame)
 
-    # Save frames as a GIF with dimensions based on the frames
+    # Save frames as a GIF
     gif_bytes = BytesIO()
     frames[0].save(gif_bytes, format='GIF', save_all=True, append_images=frames[1:], loop=0, duration=1000)
     gif_bytes.seek(0)
@@ -63,4 +58,5 @@ def generate_gif():
     return gif_bytes.getvalue(), 200, {'Content-Type': 'image/gif'}
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80)
+    # app.run(host='0.0.0.0', port=80)
+    app.run(debug=True)
