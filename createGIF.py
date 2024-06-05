@@ -18,15 +18,20 @@ def get_image_from_url(url, frame_width, frame_height):
     new_height = int(image.height * aspect_ratio)
     return image.resize((new_width, new_height))
 
-# Create a function to draw a default frame
-def draw_frame(image, frame_width, frame_height):
-    draw = ImageDraw.Draw(image)
-    draw.rectangle([10, 10, frame_width - 10, frame_height - 10], outline="black", width=5)
+# Function to add a PNG frame to an image
+def add_png_frame(image, frame_path):
+    frame = Image.open(frame_path).convert("RGBA")
+    # Ensure the frame size matches the image size
+    frame = frame.resize(image.size, Image.LANCZOS)
+    image.paste(frame, (0, 0), frame)
+    return image
 
 @app.route('/generate_gif', methods=['POST'])
 def generate_gif():
     data = request.json
     image_urls = data.get('image_urls', [])
+    frame_path = data.get('frame_path', 'frame-gif-wanderlust1.png')  # path to your PNG frame
+
     logging.error("Division by zero!")
     
     if not image_urls:
@@ -45,18 +50,14 @@ def generate_gif():
         frame = Image.new("RGB", (frame_width, frame_height), "white")
         # Paste the resized image onto the frame
         frame.paste(image, ((frame_width - image.width) // 2, (frame_height - image.height) // 2))
-        # Draw the default frame
-        draw_frame(frame, frame_width, frame_height)
+        # Add the PNG frame
+        frame = add_png_frame(frame, frame_path)
         # Append the frame to the list
         frames.append(frame)
 
-    # Determine the dimensions of the GIF based on the dimensions of the frames
-    gif_width = max(image.width for image in frames)
-    gif_height = max(image.height for image in frames)
-
     # Save frames as a GIF with dimensions based on the frames
     gif_bytes = BytesIO()
-    frames[0].save(gif_bytes, format='GIF', save_all=True, append_images=frames[1:], loop=0, duration=1000, width=gif_width, height=gif_height)
+    frames[0].save(gif_bytes, format='GIF', save_all=True, append_images=frames[1:], loop=0, duration=1000)
     gif_bytes.seek(0)
     
     return gif_bytes.getvalue(), 200, {'Content-Type': 'image/gif'}
