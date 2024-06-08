@@ -13,7 +13,7 @@ def download_image(url):
         print("Failed to download image from URL:", url)
         return None
 
-def create_up_down_collage(image1_url, image2_url, output_path, frame_width=15, frame_color=(255, 0, 0), img_width=1050, img_height=700, space=10):
+def create_up_down_collage(image1_url, image2_url, output_path, frame_width=15, frame_color=(255, 0, 0), img_width=700, img_height=1050, space=10):
     # Download images from URLs
     image1 = download_image(image1_url)
     image2 = download_image(image2_url)

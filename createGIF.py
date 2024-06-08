@@ -27,10 +27,10 @@ def generate_gif():
     data = request.json
     image_urls = data.get('image_urls', [])
     frame_path = data.get('frame_path', 'frame-gif-wanderlust1.png')  # path to your PNG frame
-    frame_width = data.get('frame_width', 1050)
-    frame_height = data.get('frame_height', 700)
-    image_width = data.get('image_width', 935)  # Specify the image width
-    image_height = data.get('image_height', 630)  # Specify the image height
+    frame_width = data.get('frame_width', 700)
+    frame_height = data.get('frame_height', 1050)
+    image_width = data.get('image_width', 700)  # Specify the image width
+    image_height = data.get('image_height', 1050)  # Specify the image height
     
     if not image_urls:
         return jsonify({"error": "No image URLs provided"}), 400
