@@ -1,6 +1,7 @@
 import os
 import base64
 import requests
+import uuid
 from flask import Flask, request, jsonify, send_file, url_for
 from flask_cors import CORS
 from PIL import Image
@@ -90,7 +91,11 @@ def create_kolase():
         return jsonify({'error': 'Missing image URLs'}), 400
 
     output_dir = data.get('output_dir', 'output')
-    output_path = os.path.join(output_dir, 'kolase.png')
+    
+    # Generate a unique filename for the collage
+    collage_filename = str(uuid.uuid4()) + '.png'
+    output_path = os.path.join(output_dir, collage_filename)
+
     frame_path = data.get('frame_path', 'frame-photo-wanderlust1.png')
     crop_percent = data.get('crop_percent', 0.8)
     collage_size = data.get('collage_size', (700, 1050))
@@ -108,7 +113,7 @@ def create_kolase():
     # Prepare the JSON response
     response_data = {
         'message': 'Collage created successfully',
-        'collage_base64': encoded_image,
+        # 'collage_base64': encoded_image,
         'collage_url': image_url
     }
 
