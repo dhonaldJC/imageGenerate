@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 from PIL import Image
 from io import BytesIO
 
 app = Flask(__name__)
+CORS(app)  # This will enable CORS for all routes
 
 # Function to retrieve image from URL and resize to specified dimensions
 def get_image_from_url(url, image_width, image_height):

@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 import requests
 from PIL import Image, ImageOps
 from io import BytesIO
 import os
 
 app = Flask(__name__)
+CORS(app)  # This will enable CORS for all routes
 
 def download_image(url):
     response = requests.get(url)
