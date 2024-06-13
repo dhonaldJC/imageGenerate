@@ -108,7 +108,7 @@ def create_kolase():
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
     # Generate the URL for the image
-    image_url = url_for('serve_image', filename='kolase.png', _external=True)
+    image_url = url_for('serve_image', filename=collage_filename, _external=True)
 
     # Prepare the JSON response
     response_data = {

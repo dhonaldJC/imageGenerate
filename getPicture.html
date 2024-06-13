@@ -210,8 +210,10 @@
                     console.log('Response uploadPhoto:', jsonData);
 
                     // Send jsonData to Kolase API
-                    // await sendToCreateKolaseImage(jsonData);
-                    await sendToCreateGifGenerate(jsonData);
+                    await sendToCreateKolaseImage(jsonData);
+
+                    // Send jsonData to GifGenerate API
+                    // await sendToCreateGifGenerate(jsonData);
                 } catch (err) {
                     console.error('Upload failed:', err.message);
                     alert('Upload failed: ' + err.message);
@@ -234,6 +236,9 @@
                         },
                         body: JSON.stringify(requestData)
                     });
+
+                    console.log('RequestData for sendToCreateKolaseImage:', requestData);
+                    console.log('Response from other API:', response);
 
                     if (!response.ok) {
                         throw new Error('Failed to send data to other API');
@@ -281,7 +286,7 @@
                     console.log('Response from other API:', responseData);
                     alert('Build Gif Success');
 
-                    // window.location.href = responseData.image_gif_url;
+                    window.location.href = responseData.image_gif_url;
                     // Handle response from other API as needed
                 } catch (err) {
                     console.error('Error sending data to other API:', err.message);
