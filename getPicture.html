@@ -207,7 +207,6 @@
                     }
 
                     const jsonData = await response.json();
-                    alert('Upload Success');
 
                     // Send jsonData to Kolase API
                     await sendToCreateKolaseImage(jsonData);
@@ -240,6 +239,9 @@
 
                     const responseData = await response.json();
                     console.log('Response from other API:', responseData);
+                    alert('Build Kolase Success');
+
+                    window.location.href = responseData.collage_url;
                     // Handle response from other API as needed
                 } catch (err) {
                     console.error('Error sending data to other API:', err.message);
