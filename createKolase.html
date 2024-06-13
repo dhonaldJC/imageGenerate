@@ -1,0 +1,270 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover">
+        <title>Kemenangan Signature</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+        <link rel="manifest" href="_manifest.json?a=1" data-pwa-version="set_in_manifest_and_pwa_js">
+        <link rel="apple-touch-icon" sizes="180x180" href="https://amazingteam.biz/atc.png">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@2.1.0/build/pure-min.css" integrity="sha384-yHIFVG6ClnONEA5yB5DJXfW2/KC173DIQrYoZMEtBvGzmf0PKiGyNEqe9N6BNDBH" crossorigin="anonymous">
+        <style>
+            @media screen and (min-width: 800px) {
+                body {
+                    padding: 0 20%;
+                }
+                #footer-bar, .page-title {
+                    margin-left: 20%;
+                    width: 60%;
+                }
+            }
+            .button {
+                color: white;
+                border-radius: 4px;
+                text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+            }
+            .button-success { background-color: rgb(28, 184, 65); }
+            .button-error { background-color: rgb(202, 60, 60); }
+            .button-warning { background-color: rgb(223, 117, 20); }
+            .button-secondary { background-color: rgb(66, 184, 221); }
+            html, body {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            .panel {
+                padding-bottom: 10px;
+            }
+            #cam, #photo {
+                width: 100%;
+                border: 1px solid black;
+            }
+            #photo {
+                border-style: dashed;
+            }
+        </style>
+    </head>
+    
+    <body class="theme-light">
+        <div style="display:none" id="reflink">https://amazingteam.biz/reg.php?id=/</div>
+        <div id="preloader"><div class="spinner-border color-highlight" role="status"></div></div>
+    
+        <div id="page">
+            <div class="header header-fixed header-logo-center header-auto-show">
+                <a href="#" data-back-button class="header-icon header-icon-1"><i class="fas fa-chevron-left"></i></a>
+            </div>  
+    
+            <div class="page-title page-title-fixed"></div>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+            
+            <div class="page-content">
+                <p class="location-support"></p>
+                <p class="location-coordinates"></p>
+                <div style="width:100%">
+                    <video style="width:100%;overflow:hidden" id="videoElement" autoplay muted playsinline>Not available</video>
+                    <canvas id="canvasElement" style="display:none"></canvas>
+                    <img id="photo1" style="width:100%;display:none">
+                    <img id="photo2" style="width:100%;display:none">
+                </div>
+                <div class="panel">
+                    <div style="width:100%;float:left">
+                        <button id="snapButton" class="button-success pure-button" style="float:left;margin-top:10px;margin-left:50px;">Take Photo 1</button>
+                        <button id="snapButton2" class="button-warning pure-button" style="float:left;margin-top:10px;margin-left:50px;display:none;">Take Photo 2</button>
+                        <button id="retryButton" class="button-error pure-button" style="float:right;margin-top:10px;margin-right:50px;margin-left:auto;">Retake Photos</button>
+                    </div>
+    
+                    <div style="width:100%;float:left">
+                        <button id="confirmButton" class="button-secondary pure-button" style="width:100%;margin-top:20px;">Confirm Upload</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Page content ends here-->
+        </div>
+    
+    <script>
+        async function initializeCamera() {
+            await switchCamera("environment");
+        }
+
+        let mediaStream = null;
+        let photo1DataUrl = null;
+        let photo2DataUrl = null;
+
+        const cameraConstraints = {
+            audio: false,
+            video: {
+                width: { ideal: 1050 },
+                height: { ideal: 700 },
+                facingMode: "environment"
+            }
+        };
+
+        async function getMediaStream(constraints) {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoElement = document.getElementById('videoElement');
+                videoElement.srcObject = mediaStream;
+                videoElement.onloadedmetadata = () => videoElement.play();
+            } catch (err) {
+                console.error(`Error accessing camera: ${err.message}`);
+                alert(`Error accessing camera: ${err.message}`);
+            }
+        }
+
+        async function switchCamera(cameraMode) {
+            try {
+                if (mediaStream?.active) {
+                    mediaStream.getVideoTracks().forEach(track => track.stop());
+                }
+                
+                document.getElementById('videoElement').srcObject = null;
+                cameraConstraints.video.facingMode = cameraMode;
+                await getMediaStream(cameraConstraints);
+            } catch (err) {
+                console.error(err.message); 
+                alert("Error switching camera: " + err.message);
+            }
+        }
+        
+        function clearPhoto() {
+            const canvasElement = document.getElementById('canvasElement');
+            const photoElement1 = document.getElementById('photo1');
+            const photoElement2 = document.getElementById('photo2');
+            const canvasContext = canvasElement.getContext('2d');
+            canvasContext.fillStyle = "#AAA";
+            canvasContext.fillRect(0, 0, canvasElement.width, canvasElement.height);
+            const dataUrl = canvasElement.toDataURL('image/png');
+            photoElement1.setAttribute('src', dataUrl);
+            photoElement2.setAttribute('src', dataUrl);
+            photo1DataUrl = null;
+            photo2DataUrl = null;
+        }
+
+        async function takePicture(photoNumber) {
+            const canvasElement = document.getElementById('canvasElement');
+            const videoElement = document.getElementById('videoElement');
+            const photoElement1 = document.getElementById('photo1');
+            const photoElement2 = document.getElementById('photo2');
+            const canvasContext = canvasElement.getContext('2d');
+            const videoHeight = videoElement.videoHeight;
+            const videoWidth = videoElement.videoWidth;
+            if (videoWidth && videoHeight) {
+                canvasElement.width = videoWidth;
+                canvasElement.height = videoHeight;
+                canvasContext.drawImage(videoElement, 0, 0, videoWidth, videoHeight);
+                const dataUrl = canvasElement.toDataURL('image/png');
+                if (photoNumber === 1) {
+                    photoElement1.setAttribute('src', dataUrl);
+                    photo1DataUrl = dataUrl;
+                    $("#videoElement").show();
+                    $("#photo1").show();
+                    $("#photo2").hide();
+                    $("#snapButton").hide();
+                    $("#snapButton2").show();
+                } else if (photoNumber === 2) {
+                    photoElement2.setAttribute('src', dataUrl);
+                    photo2DataUrl = dataUrl;
+                    $("#videoElement").hide();
+                    $("#photo2").show();
+                    $("#snapButton2").hide();
+                }
+                try {
+                    const response = await fetch('https://absen.kemenangansignature.com/upimg.php', {
+                        method: 'POST',
+                        body: new FormData().append('data', dataUrl),
+                        mode: 'cors'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const jsonData = await response.json();
+                    console.log('Response uploadPhoto:', jsonData);
+
+                    localStorage.setItem(`photoData${photoNumber}`, jsonData.img);
+                    console.log("localStorage after saving:");
+                    logLocalStorage();
+
+                } catch (err) {
+                    console.error('Upload failed:', err.message);
+                    alert('Upload failed: ' + err.message);
+                }
+            } else {
+                clearPhoto();
+            }
+        }
+
+        function logLocalStorage() {
+            console.log("Local Storage:");
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                console.log(`${key}: ${value}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const snapButton = document.getElementById('snapButton');
+            const snapButton2 = document.getElementById('snapButton2');
+            const retryButton = document.getElementById('retryButton');
+            const confirmButton = document.getElementById('confirmButton');
+            const photoElement1 = document.getElementById('photo1');
+            const photoElement2 = document.getElementById('photo2');
+            const videoElement = document.getElementById('videoElement');
+            const loadingElement = $(".loading");
+
+            snapButton.addEventListener('click', event => handleSnapButtonClick(event, 1));
+            snapButton2.addEventListener('click', event => handleSnapButtonClick(event, 2));
+
+            function handleSnapButtonClick(event, photoNumber) {
+                takePicture(photoNumber);
+                event.preventDefault();
+            }
+
+            retryButton.addEventListener('click', () => {
+                clearPhoto();
+                $(videoElement).show();
+                $(photoElement1).hide();
+                $(photoElement2).hide();
+                $("#snapButton").show();
+                $("#snapButton2").hide();
+            });
+
+            confirmButton.addEventListener('click', async (event) => {
+                loadingElement.show();
+                const photoData1 = localStorage.getItem('photoData1');
+                const photoData2 = localStorage.getItem('photoData2');
+                const requestData = { image1_url: photoData1, image2_url: photoData2 };
+
+                try {
+                    const response = await fetch('http://152.42.252.10:5000/create_kolase', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    console.log('RequestData for sendToCreateKolaseImage:', requestData);
+                    console.log('Response from other API:', response);
+
+                    if (!response.ok) {
+                        throw new Error('Failed to send data to other API');
+                    }
+
+                    const responseData = await response.json();
+                    console.log('Response from sendToCreateKolaseImage API:', responseData);
+                    alert('Build Kolase Success');
+
+                    window.location.href = responseData.collage_url;
+                } catch (err) {
+                    console.error('Error sending data to other API:', err.message);
+                }
+            });
+
+            initializeCamera();
+        });
+    </script>
+
+</body>
+</html>
