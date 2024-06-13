@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify, send_file
-from flask_cors import CORS
-import requests
-from PIL import Image, ImageOps
-from io import BytesIO
 import os
+from flask import Flask, request, jsonify
+import base64
+from io import BytesIO
+from PIL import Image
+import requests
+from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
@@ -92,11 +93,25 @@ def create_kolase():
 
     if not image1_url or not image2_url:
         return jsonify({'error': 'Missing image URLs'}), 400
+    
+    # Ensure the output directory exists
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     create_up_down_collage(image1_url, image2_url, output_path, frame_path, crop_percent, collage_size)
 
-    # Return the saved image file in the response
-    return send_file(output_path, mimetype='image/png')
+    # Encode the saved image to Base64
+    with open(output_path, "rb") as image_file:
+        encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+    # Prepare the JSON response
+    response_data = {
+        'message': 'Collage created successfully',
+        'collage': encoded_image
+    }
+
+    return jsonify(response_data), 200
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80)
