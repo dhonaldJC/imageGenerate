@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file, url_for
 import base64
 from io import BytesIO
 from PIL import Image
@@ -10,13 +10,14 @@ app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 
 def download_image(url):
-    response = requests.get(url)
-    if response.status_code == 200:
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
         return Image.open(BytesIO(response.content))
-    else:
-        print("Failed to download image from URL:", url)
+    except requests.RequestException as e:
+        print(f"Failed to download image from URL {url}: {e}")
         return None
-    
+
 def add_png_frame(image, frame_path):
     frame = Image.open(frame_path).convert("RGBA")
     # Ensure the frame retains its original size
@@ -85,33 +86,37 @@ def create_kolase():
 
     image1_url = data.get('image1_url')
     image2_url = data.get('image2_url')
+    if not image1_url or not image2_url:
+        return jsonify({'error': 'Missing image URLs'}), 400
+
     output_dir = data.get('output_dir', 'output')
     output_path = os.path.join(output_dir, 'kolase.png')
     frame_path = data.get('frame_path', 'frame-photo-wanderlust1.png')
     crop_percent = data.get('crop_percent', 0.8)
     collage_size = data.get('collage_size', (700, 1050))
 
-    if not image1_url or not image2_url:
-        return jsonify({'error': 'Missing image URLs'}), 400
-    
-    # Ensure the output directory exists
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
+    os.makedirs(output_dir, exist_ok=True)
     create_up_down_collage(image1_url, image2_url, output_path, frame_path, crop_percent, collage_size)
 
     # Encode the saved image to Base64
     with open(output_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
+    # Generate the URL for the image
+    image_url = url_for('serve_image', filename='kolase.png', _external=True)
+
     # Prepare the JSON response
     response_data = {
         'message': 'Collage created successfully',
-        'collage': encoded_image
+        'collage_base64': encoded_image,
+        'collage_url': image_url
     }
 
     return jsonify(response_data), 200
 
+@app.route('/images/<filename>')
+def serve_image(filename):
+    return send_file(os.path.join('output', filename), mimetype='image/png')
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80)
