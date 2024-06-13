@@ -1,10 +1,10 @@
 import os
-from flask import Flask, request, jsonify, send_file, url_for
 import base64
-from io import BytesIO
-from PIL import Image
 import requests
+from flask import Flask, request, jsonify, send_file, url_for
 from flask_cors import CORS
+from PIL import Image
+from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes

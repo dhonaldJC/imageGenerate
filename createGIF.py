@@ -1,6 +1,8 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+import os
+import base64
 import requests
+from flask import Flask, request, jsonify, url_for
+from flask_cors import CORS
 from PIL import Image
 from io import BytesIO
 
@@ -57,7 +59,23 @@ def generate_gif():
     frames[0].save(gif_bytes, format='GIF', save_all=True, append_images=frames[1:], loop=0, duration=1000)
     gif_bytes.seek(0)
     
-    return gif_bytes.getvalue(), 200, {'Content-Type': 'image/gif'}
+    # Save GIF to file system
+    gif_filename = 'output.gif'
+    gif_path = os.path.join('/tmp', gif_filename)
+    with open(gif_path, 'wb') as f:
+        f.write(gif_bytes.getvalue())
+
+    # Encode GIF bytes to base64
+    gif_base64 = base64.b64encode(gif_bytes.getvalue()).decode('utf-8')
+
+    # Assuming you have a way to serve the saved GIF (e.g., a web server, cloud storage)
+    image_gif_url = url_for('static', filename=gif_filename, _external=True)
+
+    return jsonify({
+        "message": "GIF generated successfully",
+        "gif": gif_base64,
+        "image_gif_url": image_gif_url
+    }), 200
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80)
