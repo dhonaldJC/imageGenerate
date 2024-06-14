@@ -7,7 +7,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover">
         <title>Kemenangan Signature</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-        <link rel="manifest" href="_manifest.json?a=1" data-pwa-version="set_in_manifest_and_pwa_js">
         <link rel="apple-touch-icon" sizes="180x180" href="https://amazingteam.biz/atc.png">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@2.1.0/build/pure-min.css" integrity="sha384-yHIFVG6ClnONEA5yB5DJXfW2/KC173DIQrYoZMEtBvGzmf0PKiGyNEqe9N6BNDBH" crossorigin="anonymous">
         <style>
@@ -170,9 +169,12 @@
                     $("#snapButton2").hide();
                 }
                 try {
+                    const formData = new FormData();
+                    formData.append('data', dataUrl);
+
                     const response = await fetch('https://absen.kemenangansignature.com/upimg.php', {
                         method: 'POST',
-                        body: new FormData().append('data', dataUrl),
+                        body: formData,
                         mode: 'cors'
                     });
 
@@ -183,9 +185,12 @@
                     const jsonData = await response.json();
                     console.log('Response uploadPhoto:', jsonData);
 
+                    // Save data to local storage
                     localStorage.setItem(`photoData${photoNumber}`, jsonData.img);
+
+                    // Log localStorage contents after saving
                     console.log("localStorage after saving:");
-                    logLocalStorage();
+                    logLocalStorage();                    
 
                 } catch (err) {
                     console.error('Upload failed:', err.message);
