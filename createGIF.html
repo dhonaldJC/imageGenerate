@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover">
     <title>Kemenangan Signature</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="manifest" href="_manifest.json?a=1" data-pwa-version="set_in_manifest_and_pwa_js">
     <link rel="apple-touch-icon" sizes="180x180" href="https://amazingteam.biz/atc.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@2.1.0/build/pure-min.css" integrity="sha384-yHIFVG6ClnONEA5yB5DJXfW2/KC173DIQrYoZMEtBvGzmf0PKiGyNEqe9N6BNDBH" crossorigin="anonymous">
     <style>
@@ -66,11 +65,15 @@
                 <canvas id="canvasElement" style="display:none"></canvas>
                 <img id="photo1" style="width:100%;display:none">
                 <img id="photo2" style="width:100%;display:none">
+                <img id="photo3" style="width:100%;display:none">
+                <img id="photo4" style="width:100%;display:none">
             </div>
             <div class="panel">
                 <div style="width:100%;float:left">
                     <button id="snapButton" class="button-success pure-button" style="float:left;margin-top:10px;margin-left:50px;">Take Photo 1</button>
                     <button id="snapButton2" class="button-warning pure-button" style="float:left;margin-top:10px;margin-left:50px;display:none;">Take Photo 2</button>
+                    <button id="snapButton3" class="button-success pure-button" style="float:left;margin-top:10px;margin-left:50px;display:none;">Take Photo 3</button>
+                    <button id="snapButton4" class="button-warning pure-button" style="float:left;margin-top:10px;margin-left:50px;display:none;">Take Photo 4</button>
                     <button id="retryButton" class="button-error pure-button" style="float:right;margin-top:10px;margin-right:50px;margin-left:auto;">Retake Photos</button>
                 </div>
 
@@ -90,6 +93,8 @@
         let mediaStream = null;
         let photo1DataUrl = null;
         let photo2DataUrl = null;
+        let photo3DataUrl = null;
+        let photo4DataUrl = null;
 
         const cameraConstraints = {
             audio: false,
@@ -131,14 +136,20 @@
             const canvasElement = document.getElementById('canvasElement');
             const photoElement1 = document.getElementById('photo1');
             const photoElement2 = document.getElementById('photo2');
+            const photoElement3 = document.getElementById('photo3');
+            const photoElement4 = document.getElementById('photo4');
             const canvasContext = canvasElement.getContext('2d');
             canvasContext.fillStyle = "#AAA";
             canvasContext.fillRect(0, 0, canvasElement.width, canvasElement.height);
             const dataUrl = canvasElement.toDataURL('image/png');
             photoElement1.setAttribute('src', dataUrl);
             photoElement2.setAttribute('src', dataUrl);
+            photoElement3.setAttribute('src', dataUrl);
+            photoElement4.setAttribute('src', dataUrl);
             photo1DataUrl = null;
             photo2DataUrl = null;
+            photo3DataUrl = null;
+            photo4DataUrl = null;
         }
 
         async function takePicture(photoNumber) {
@@ -146,6 +157,8 @@
             const videoElement = document.getElementById('videoElement');
             const photoElement1 = document.getElementById('photo1');
             const photoElement2 = document.getElementById('photo2');
+            const photoElement3 = document.getElementById('photo3');
+            const photoElement4 = document.getElementById('photo4');
             const canvasContext = canvasElement.getContext('2d');
             const videoHeight = videoElement.videoHeight;
             const videoWidth = videoElement.videoWidth;
@@ -160,19 +173,41 @@
                     $("#videoElement").show();
                     $("#photo1").show();
                     $("#photo2").hide();
+                    $("#photo3").hide();
+                    $("#photo4").hide();
                     $("#snapButton").hide();
                     $("#snapButton2").show();
                 } else if (photoNumber === 2) {
                     photoElement2.setAttribute('src', dataUrl);
                     photo2DataUrl = dataUrl;
-                    $("#videoElement").hide();
+                    $("#videoElement").show();
                     $("#photo2").show();
+                    $("#photo3").hide();
+                    $("#photo4").hide();
                     $("#snapButton2").hide();
+                    $("#snapButton3").show();
+                } else if (photoNumber === 3) {
+                    photoElement3.setAttribute('src', dataUrl);
+                    photo3DataUrl = dataUrl;
+                    $("#videoElement").show();
+                    $("#photo3").show();
+                    $("#photo4").hide();
+                    $("#snapButton3").hide();
+                    $("#snapButton4").show();
+                } else if (photoNumber === 4) {
+                    photoElement4.setAttribute('src', dataUrl);
+                    photo4DataUrl = dataUrl;
+                    $("#videoElement").hide();
+                    $("#photo4").show();
+                    $("#snapButton4").hide();
                 }
                 try {
+                    const formData = new FormData();
+                    formData.append('data', dataUrl);
+
                     const response = await fetch('https://absen.kemenangansignature.com/upimg.php', {
                         method: 'POST',
-                        body: new FormData().append('data', dataUrl),
+                        body: formData,
                         mode: 'cors'
                     });
 
@@ -183,9 +218,12 @@
                     const jsonData = await response.json();
                     console.log('Response uploadPhoto:', jsonData);
 
+                    // Save data to local storage
                     localStorage.setItem(`photoData${photoNumber}`, jsonData.img);
+
+                    // Log localStorage contents after saving
                     console.log("localStorage after saving:");
-                    logLocalStorage();
+                    logLocalStorage();                    
 
                 } catch (err) {
                     console.error('Upload failed:', err.message);
@@ -208,15 +246,21 @@
         document.addEventListener('DOMContentLoaded', () => {
             const snapButton = document.getElementById('snapButton');
             const snapButton2 = document.getElementById('snapButton2');
+            const snapButton3 = document.getElementById('snapButton3');
+            const snapButton4 = document.getElementById('snapButton4');
             const retryButton = document.getElementById('retryButton');
             const confirmButton = document.getElementById('confirmButton');
             const photoElement1 = document.getElementById('photo1');
             const photoElement2 = document.getElementById('photo2');
+            const photoElement3 = document.getElementById('photo3');
+            const photoElement4 = document.getElementById('photo4');
             const videoElement = document.getElementById('videoElement');
             const loadingElement = $(".loading");
 
             snapButton.addEventListener('click', event => handleSnapButtonClick(event, 1));
             snapButton2.addEventListener('click', event => handleSnapButtonClick(event, 2));
+            snapButton3.addEventListener('click', event => handleSnapButtonClick(event, 3));
+            snapButton4.addEventListener('click', event => handleSnapButtonClick(event, 4));
 
             function handleSnapButtonClick(event, photoNumber) {
                 takePicture(photoNumber);
@@ -228,8 +272,12 @@
                 $(videoElement).show();
                 $(photoElement1).hide();
                 $(photoElement2).hide();
+                $(photoElement3).hide();
+                $(photoElement4).hide();
                 $("#snapButton").show();
                 $("#snapButton2").hide();
+                $("#snapButton3").hide();
+                $("#snapButton4").hide();
             });
 
             confirmButton.addEventListener('click', async (event) => {
@@ -237,10 +285,10 @@
                 try {
                     const requestData = {
                         image_urls: [
-                            data.img,
-                            data.img,
-                            data.img,
-                            data.img
+                            localStorage.getItem('photoData1'),
+                            localStorage.getItem('photoData2'),
+                            localStorage.getItem('photoData3'),
+                            localStorage.getItem('photoData4')
                         ]
                     };
                     const response = await fetch('http://152.42.252.10:4000/generate_gif', {
