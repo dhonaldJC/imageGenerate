@@ -60,7 +60,7 @@
         <div class="page-content">
             <p class="location-support"></p>
             <p class="location-coordinates"></p>
-            <div style="width:100%">
+            <div style="width:100%;">
                 <video style="width:100%;overflow:hidden" id="videoElement" autoplay muted playsinline>Not available</video>
                 <canvas id="canvasElement" style="display:none"></canvas>
                 <img id="photo1" style="width:100%;display:none">
@@ -82,7 +82,6 @@
                 </div>
             </div>
         </div>
-        <!-- Page content ends here-->
     </div>
     
     <script>
@@ -170,37 +169,26 @@
                 if (photoNumber === 1) {
                     photoElement1.setAttribute('src', dataUrl);
                     photo1DataUrl = dataUrl;
-                    $("#videoElement").show();
-                    $("#photo1").show();
-                    $("#photo2").hide();
-                    $("#photo3").hide();
-                    $("#photo4").hide();
                     $("#snapButton").hide();
                     $("#snapButton2").show();
                 } else if (photoNumber === 2) {
                     photoElement2.setAttribute('src', dataUrl);
                     photo2DataUrl = dataUrl;
-                    $("#videoElement").show();
-                    $("#photo2").show();
-                    $("#photo3").hide();
-                    $("#photo4").hide();
                     $("#snapButton2").hide();
                     $("#snapButton3").show();
                 } else if (photoNumber === 3) {
                     photoElement3.setAttribute('src', dataUrl);
                     photo3DataUrl = dataUrl;
-                    $("#videoElement").show();
-                    $("#photo3").show();
-                    $("#photo4").hide();
                     $("#snapButton3").hide();
                     $("#snapButton4").show();
                 } else if (photoNumber === 4) {
                     photoElement4.setAttribute('src', dataUrl);
                     photo4DataUrl = dataUrl;
-                    $("#videoElement").hide();
-                    $("#photo4").show();
                     $("#snapButton4").hide();
                 }
+
+                $(`#photo${photoNumber}`).hide(); // Hide the photo element after taking the photo
+
                 try {
                     const formData = new FormData();
                     formData.append('data', dataUrl);
@@ -214,17 +202,12 @@
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
                     }
-
                     const jsonData = await response.json();
                     console.log('Response uploadPhoto:', jsonData);
 
-                    // Save data to local storage
                     localStorage.setItem(`photoData${photoNumber}`, jsonData.img);
-
-                    // Log localStorage contents after saving
                     console.log("localStorage after saving:");
-                    logLocalStorage();                    
-
+                    logLocalStorage();                
                 } catch (err) {
                     console.error('Upload failed:', err.message);
                     alert('Upload failed: ' + err.message);

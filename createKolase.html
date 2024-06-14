@@ -78,7 +78,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Page content ends here-->
         </div>
     
     <script>
@@ -156,18 +155,16 @@
                 if (photoNumber === 1) {
                     photoElement1.setAttribute('src', dataUrl);
                     photo1DataUrl = dataUrl;
-                    $("#videoElement").show();
-                    $("#photo1").show();
-                    $("#photo2").hide();
                     $("#snapButton").hide();
                     $("#snapButton2").show();
                 } else if (photoNumber === 2) {
                     photoElement2.setAttribute('src', dataUrl);
                     photo2DataUrl = dataUrl;
-                    $("#videoElement").hide();
-                    $("#photo2").show();
                     $("#snapButton2").hide();
                 }
+
+                $(`#photo${photoNumber}`).hide(); // Hide the photo element after taking the photo
+
                 try {
                     const formData = new FormData();
                     formData.append('data', dataUrl);
