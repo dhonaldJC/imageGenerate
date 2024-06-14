@@ -265,6 +265,13 @@
             });
 
             initializeCamera();
+
+            window.addEventListener('beforeunload', () => {
+                localStorage.removeItem('photoData1');
+                localStorage.removeItem('photoData2');
+                localStorage.removeItem('photoData3');
+                localStorage.removeItem('photoData4');
+            });
         });
     </script>
 
