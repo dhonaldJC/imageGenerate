@@ -50,12 +50,48 @@
         #photo {
             border-style: dashed;
         }
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
 <body class="theme-light">
     <div style="display:none" id="reflink">https://amazingteam.biz/reg.php?id=/</div>
     <div id="preloader"><div class="spinner-border color-highlight" role="status"></div></div>
+    <div id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Processing...</div>
+    </div>
 
     <div id="page">
         <div class="header header-fixed header-logo-center header-auto-show">
@@ -159,7 +195,12 @@
             photo4DataUrl = null;
         }
 
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
         async function takePicture(photoNumber) {
+            // Show loading overlay
+            loadingOverlay.style.display = 'flex';
+
             const canvasElement = document.getElementById('canvasElement');
             const videoElement = document.getElementById('videoElement');
             const photoElement1 = document.getElementById('photo1');
@@ -169,62 +210,78 @@
             const canvasContext = canvasElement.getContext('2d');
             const videoHeight = videoElement.videoHeight;
             const videoWidth = videoElement.videoWidth;
-            if (videoWidth && videoHeight) {
-                canvasElement.width = videoWidth;
-                canvasElement.height = videoHeight;
-                canvasContext.drawImage(videoElement, 0, 0, videoWidth, videoHeight);
-                const dataUrl = canvasElement.toDataURL('image/png');
-                if (photoNumber === 1) {
-                    photoElement1.setAttribute('src', dataUrl);
-                    photo1DataUrl = dataUrl;
-                    $("#snapButton").hide();
-                    $("#snapButton2").show();
-                } else if (photoNumber === 2) {
-                    photoElement2.setAttribute('src', dataUrl);
-                    photo2DataUrl = dataUrl;
-                    $("#snapButton2").hide();
-                    $("#snapButton3").show();
-                } else if (photoNumber === 3) {
-                    photoElement3.setAttribute('src', dataUrl);
-                    photo3DataUrl = dataUrl;
-                    $("#snapButton3").hide();
-                    $("#snapButton4").show();
-                } else if (photoNumber === 4) {
-                    photoElement4.setAttribute('src', dataUrl);
-                    photo4DataUrl = dataUrl;
-                    $("#snapButton4").hide();
-                    $("#confirmButton").show(); // Show the Confirm Upload button
-                }
 
-                $(`#photo${photoNumber}`).hide(); // Hide the photo element after taking the photo
+            try {
+                if (videoWidth && videoHeight) {
+                    canvasElement.width = videoWidth;
+                    canvasElement.height = videoHeight;
+                    canvasContext.drawImage(videoElement, 0, 0, videoWidth, videoHeight);
+                    const dataUrl = canvasElement.toDataURL('image/png');
 
-                try {
-                    const formData = new FormData();
-                    formData.append('data', dataUrl);
-
-                    const response = await fetch('https://absen.kemenangansignature.com/upimg.php', {
-                        method: 'POST',
-                        body: formData,
-                        mode: 'cors'
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                    if (photoNumber === 1) {
+                        photoElement1.setAttribute('src', dataUrl);
+                        photo1DataUrl = dataUrl;
+                        $("#snapButton").hide();
+                        $("#snapButton2").show();
+                    } else if (photoNumber === 2) {
+                        photoElement2.setAttribute('src', dataUrl);
+                        photo2DataUrl = dataUrl;
+                        $("#snapButton2").hide();
+                        $("#snapButton3").show();
+                    } else if (photoNumber === 3) {
+                        photoElement3.setAttribute('src', dataUrl);
+                        photo3DataUrl = dataUrl;
+                        $("#snapButton3").hide();
+                        $("#snapButton4").show();
+                    } else if (photoNumber === 4) {
+                        photoElement4.setAttribute('src', dataUrl);
+                        photo4DataUrl = dataUrl;
+                        $("#snapButton4").hide();
+                        $("#confirmButton").show(); // Show the Confirm Upload button
                     }
-                    const jsonData = await response.json();
-                    console.log('Response uploadPhoto:', jsonData);
 
-                    localStorage.setItem(`photoData${photoNumber}`, jsonData.img);
-                    console.log("localStorage after saving:");
-                    logLocalStorage();                
-                } catch (err) {
-                    console.error('Upload failed:', err.message);
-                    alert('Upload failed: ' + err.message);
+                    $(`#photo${photoNumber}`).hide(); // Hide the photo element after taking the photo
+
+                    try {
+                        const formData = new FormData();
+                        formData.append('data', dataUrl);
+
+                        const response = await fetch('https://absen.kemenangansignature.com/upimg.php', {
+                            method: 'POST',
+                            body: formData,
+                            mode: 'cors'
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+
+                        const jsonData = await response.json();
+                        console.log('Response uploadPhoto:', jsonData);
+
+                        // Save data to local storage
+                        localStorage.setItem(`photoData${photoNumber}`, jsonData.img);
+
+                        // Log localStorage contents after saving
+                        console.log("localStorage after saving:");
+                        logLocalStorage();
+
+                    } catch (err) {
+                        console.error('Upload failed:', err.message);
+                        alert('Upload failed: ' + err.message);
+                    }
+                } else {
+                    clearPhoto();
                 }
-            } else {
-                clearPhoto();
+            } catch (err) {
+                console.error('Error:', err.message);
+                alert('Error:', err.message);
+            } finally {
+                // Hide loading overlay after processing or error
+                loadingOverlay.style.display = 'none';
             }
         }
+
 
         function logLocalStorage() {
             console.log("Local Storage:");
@@ -275,6 +332,8 @@
 
             confirmButton.addEventListener('click', async (event) => {
                 loadingElement.show();
+                // Show loading overlay
+                loadingOverlay.style.display = 'flex';
                 try {
                     const requestData = {
                         image_urls: [
@@ -303,9 +362,14 @@
                     console.log('Response from other API:', responseData);
                     alert('Build Gif Success');
 
+                    // Hide loading overlay after API call completes
+                    loadingOverlay.style.display = 'none';
+
                     window.location.href = responseData.image_gif_url;
                 } catch (err) {
                     console.error('Error sending data to other API:', err.message);
+                    // Hide loading overlay on error (if it's still visible)
+                    loadingOverlay.style.display = 'none';
                 }
             });
 
