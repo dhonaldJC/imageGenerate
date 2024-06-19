@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt || \
 EXPOSE 443
 
 # Copy SSL certificates
-COPY private.key /home/app/certificate.crt
+COPY certificate.crt /home/app/certificate.crt
 COPY private.key /home/app/private.key
 
 # Run app.py when the container launches
