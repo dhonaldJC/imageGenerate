@@ -11,8 +11,12 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt || \
     (echo "pip install failed, check requirements.txt" && exit 1)
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
+# Make port 443 available to the world outside this container
+EXPOSE 443
+
+# Copy SSL certificates
+COPY private.key /home/app/certificate.crt
+COPY private.key /home/app/private.key
 
 # Run app.py when the container launches
 CMD ["python", "kolase.py"]

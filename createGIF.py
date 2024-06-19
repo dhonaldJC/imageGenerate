@@ -86,5 +86,5 @@ def serve_image(filename):
     return send_file(os.path.join('output', filename), mimetype='image/gif')
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=443, ssl_context=('certificate.crt', 'private.key'))
     # app.run(debug=True)
