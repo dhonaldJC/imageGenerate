@@ -33,7 +33,15 @@
                 overflow-x: hidden;
             }
             .panel {
-                padding-bottom: 10px;
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            }
+            .panel > div {
+                margin-top: 10px;
+                text-align: center;
             }
             #cam, #photo {
                 width: 100%;
@@ -68,14 +76,12 @@
                 </div>
                 <div class="panel">
                     <div style="width:100%;float:left">
-                        <button id="snapButton" class="button-success pure-button" style="float:left;margin-top:10px;margin-left:50px;">Take Photo 1</button>
-                        <button id="snapButton2" class="button-warning pure-button" style="float:left;margin-top:10px;margin-left:50px;display:none;">Take Photo 2</button>
-                        <button id="retryButton" class="button-error pure-button" style="float:right;margin-top:10px;margin-right:50px;margin-left:auto;">Retake Photos</button>
+                        <button id="snapButton" class="button-success pure-button" style="float:left;margin-top:10px;margin-left:20px;">Take Photo 1</button>
+                        <button id="snapButton2" class="button-warning pure-button" style="float:left;margin-top:10px;margin-left:20px;display:none;">Take Photo 2</button>
+                        <button id="retryButton" class="button-error pure-button" style="float:right;margin-top:10px;margin-right:20px;">Refresh</button>
+                        <button id="confirmButton" class="button-secondary pure-button" style="float:left;margin-top:10px;margin-left:20px;display:none;">Confirm Upload</button>
                     </div>
     
-                    <div style="width:100%;float:left">
-                        <button id="confirmButton" class="button-secondary pure-button" style="width:100%;margin-top:20px;">Confirm Upload</button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -161,6 +167,7 @@
                     photoElement2.setAttribute('src', dataUrl);
                     photo2DataUrl = dataUrl;
                     $("#snapButton2").hide();
+                    $("#confirmButton").show(); // Show the Confirm Upload button
                 }
 
                 $(`#photo${photoNumber}`).hide(); // Hide the photo element after taking the photo
@@ -232,6 +239,7 @@
                 $(photoElement2).hide();
                 $("#snapButton").show();
                 $("#snapButton2").hide();
+                $("#confirmButton").hide(); // Hide the Confirm Upload button on retry
             });
 
             confirmButton.addEventListener('click', async (event) => {
